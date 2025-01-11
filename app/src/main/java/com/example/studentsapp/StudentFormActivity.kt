@@ -9,14 +9,21 @@ import com.example.studentsapp.data.Student
 import com.example.studentsapp.data.StudentRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlin.properties.Delegates
 
 class StudentFormActivity : AppCompatActivity() {
 
     private lateinit var nameField: TextInputEditText
     private lateinit var idField: TextInputEditText
     private lateinit var saveButton: MaterialButton
+    private lateinit var editButton: MaterialButton
+    private lateinit var cancelButton: MaterialButton
+    private lateinit var updateButton: MaterialButton
 
-    private lateinit var mode: FormMode
+    private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
+        updateButtonsVisibility(newValue)
+        setFieldsEnabled(newValue != FormMode.VIEW)
+    }
     private var currentStudent: Student? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,6 +34,9 @@ class StudentFormActivity : AppCompatActivity() {
         nameField = findViewById<TextInputEditText>(R.id.nameField)
         idField = findViewById<TextInputEditText>(R.id.idField)
         saveButton = findViewById<MaterialButton>(R.id.saveButton)
+        editButton = findViewById(R.id.editButton)
+        cancelButton = findViewById(R.id.cancelButton)
+        updateButton = findViewById(R.id.updateButton)
 
         mode = if (intent.hasExtra("STUDENT_ID")) FormMode.VIEW else FormMode.ADD
 
@@ -34,26 +44,40 @@ class StudentFormActivity : AppCompatActivity() {
             val studentId = intent.getStringExtra("STUDENT_ID")
             currentStudent = StudentRepository.students.find { it.id == studentId }
             populateFields(currentStudent)
-            setFieldsReadOnly()
         }
 
-        saveButton.visibility = if (mode == FormMode.VIEW) View.GONE else View.VISIBLE
-        saveButton.setOnClickListener { addNewStudent() }
+        saveButton.setOnClickListener { updateStudent() }
+        editButton.setOnClickListener { mode = FormMode.EDIT }
 
+        cancelButton.setOnClickListener {
+            populateFields(currentStudent)
+            mode = FormMode.VIEW
+        }
+
+        updateButton.setOnClickListener {
+            updateStudent()
+            mode = FormMode.VIEW
+        }
     }
 
-    private fun addNewStudent() {
+    private fun updateStudent() {
         val name = nameField.text.toString()
         val id = idField.text.toString()
-
         if (name.isEmpty() || id.isEmpty()) {
             Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show()
             return
         }
+        if(currentStudent != null) {
+            currentStudent?.let {
+                it.name = name
+                it.id = id
+            }
+        } else {
+            StudentRepository.students.add(Student(id, name))
+            finish()
+        }
 
-        StudentRepository.students.add(Student(id, name))
-        Toast.makeText(this, "Student added successfully", Toast.LENGTH_SHORT).show()
-        finish()
+        Toast.makeText(this, "Student updated successfully", Toast.LENGTH_SHORT).show()
     }
 
     private fun populateFields(student: Student?) {
@@ -63,8 +87,16 @@ class StudentFormActivity : AppCompatActivity() {
         }
     }
 
-    private fun setFieldsReadOnly() {
-        nameField.isEnabled = false
-        idField.isEnabled = false
+    private fun setFieldsEnabled(isEnabled: Boolean) {
+        nameField.isEnabled = isEnabled
+        idField.isEnabled = isEnabled
     }
+
+    private fun updateButtonsVisibility(mode: FormMode) {
+        saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
+        editButton.visibility = if (mode == FormMode.VIEW) View.VISIBLE else View.GONE
+        updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+        cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+    }
+
 }
