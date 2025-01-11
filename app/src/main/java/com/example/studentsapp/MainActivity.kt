@@ -9,7 +9,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.studentsapp.data.Student
 import com.example.studentsapp.data.StudentRepository
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -39,13 +38,15 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         findViewById<FloatingActionButton>(R.id.addStudentFab).setOnClickListener {
-            startActivity(Intent(this, NewStudentActivity::class.java))
+            startActivity(Intent(this, StudentFormActivity::class.java))
         }
     }
 
     private fun setupRecyclerView() {
         adapter = StudentAdapter(StudentRepository.students, onRowClick = { student ->
-            // TODO: Handle row click
+            val intent = Intent(this, StudentFormActivity::class.java)
+            intent.putExtra("STUDENT_ID", student.id)
+            startActivity(intent)
         }, onCheckChange = { student, isChecked ->
             student.isChecked = isChecked
         })
