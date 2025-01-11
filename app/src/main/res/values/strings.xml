@@ -4,5 +4,9 @@
     <string name="student_name_label">Student Name</string>
     <string name="student_id_label">Student ID</string>
     <string name="add_student_description">Add a new student</string>
+    <string name="student_name_hint">Enter student name</string>
+    <string name="student_id_hint">Enter student ID</string>
+    <string name="save_button">Save</string>
+    <string name="no_students_message">No students entered. Please input a student.</string>
 
 </resources>

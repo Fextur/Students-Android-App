@@ -2,6 +2,7 @@ package com.example.studentsapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -16,6 +17,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: StudentAdapter
+    private lateinit var emptyStateMessage: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,21 +31,41 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
+        emptyStateMessage = findViewById(R.id.emptyStateMessage)
 
-        StudentRepository.students.add(Student("1", "Alice"))
-        StudentRepository.students.add(Student("2", "Bob"))
-
-        adapter = StudentAdapter(StudentRepository.students,
-            onRowClick = { student ->
-                // TODO: Navigate to StudentDetailsActivity (to be implemented)
-            },
-            onCheckChange = { student, isChecked ->
-                student.isChecked = isChecked
-            }
-        )
+        setupRecyclerView()
+        updateEmptyState()
 
         recyclerView.adapter = adapter
 
-        // TODO: Add FloatingActionButton click listener (to be implemented)
+        findViewById<FloatingActionButton>(R.id.addStudentFab).setOnClickListener {
+            startActivity(Intent(this, NewStudentActivity::class.java))
+        }
     }
+
+    private fun setupRecyclerView() {
+        adapter = StudentAdapter(StudentRepository.students, onRowClick = { student ->
+            // TODO: Handle row click
+        }, onCheckChange = { student, isChecked ->
+            student.isChecked = isChecked
+        })
+        recyclerView.adapter = adapter
+    }
+
+    private fun updateEmptyState() {
+        if (StudentRepository.students.isEmpty()) {
+            recyclerView.visibility = View.GONE
+            emptyStateMessage.visibility = View.VISIBLE
+        } else {
+            recyclerView.visibility = View.VISIBLE
+            emptyStateMessage.visibility = View.GONE
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        setupRecyclerView()
+        updateEmptyState()
+    }
+
 }
