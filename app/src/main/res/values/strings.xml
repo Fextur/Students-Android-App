@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Students App</string>
+    <string name="student_picture_desc">Student profile picture</string>
+    <string name="student_name_label">Student Name</string>
+    <string name="student_id_label">Student ID</string>
+    <string name="add_student_description">Add a new student</string>
+
 </resources>
