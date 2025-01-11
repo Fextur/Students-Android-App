@@ -2,6 +2,7 @@ package com.example.studentsapp
 
 import android.os.Bundle
 import android.view.View
+import android.widget.CheckBox
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,9 @@ class StudentFormActivity : AppCompatActivity() {
     private lateinit var idField: TextInputEditText
     private lateinit var saveButton: MaterialButton
     private lateinit var editButton: MaterialButton
+    private lateinit var phoneField: TextInputEditText
+    private lateinit var addressField: TextInputEditText
+    private lateinit var isCheckedBox: CheckBox
     private lateinit var cancelButton: MaterialButton
     private lateinit var updateButton: MaterialButton
 
@@ -31,9 +35,13 @@ class StudentFormActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_student_form)
 
-        nameField = findViewById<TextInputEditText>(R.id.nameField)
-        idField = findViewById<TextInputEditText>(R.id.idField)
-        saveButton = findViewById<MaterialButton>(R.id.saveButton)
+        nameField = findViewById(R.id.nameField)
+        idField = findViewById(R.id.idField)
+        phoneField = findViewById(R.id.phoneField)
+        addressField = findViewById(R.id.addressField)
+        isCheckedBox = findViewById(R.id.isCheckedBox)
+
+        saveButton = findViewById(R.id.saveButton)
         editButton = findViewById(R.id.editButton)
         cancelButton = findViewById(R.id.cancelButton)
         updateButton = findViewById(R.id.updateButton)
@@ -63,7 +71,11 @@ class StudentFormActivity : AppCompatActivity() {
     private fun updateStudent() {
         val name = nameField.text.toString()
         val id = idField.text.toString()
-        if (name.isEmpty() || id.isEmpty()) {
+        val phone = phoneField.text.toString()
+        val address = addressField.text.toString()
+        val isChecked = isCheckedBox.isChecked
+
+        if (name.isEmpty() || id.isEmpty() || phone.isEmpty() || address.isEmpty()) {
             Toast.makeText(this, "Please fill out all fields", Toast.LENGTH_SHORT).show()
             return
         }
@@ -73,7 +85,7 @@ class StudentFormActivity : AppCompatActivity() {
                 it.id = id
             }
         } else {
-            StudentRepository.students.add(Student(id, name))
+            StudentRepository.students.add(Student(id, name, isChecked, phone, address))
             finish()
         }
 
@@ -84,12 +96,18 @@ class StudentFormActivity : AppCompatActivity() {
         if (student != null) {
             nameField.setText(student.name)
             idField.setText(student.id)
+            phoneField.setText(student.phone)
+            addressField.setText(student.address)
+            isCheckedBox.isChecked = student.isChecked
         }
     }
 
     private fun setFieldsEnabled(isEnabled: Boolean) {
         nameField.isEnabled = isEnabled
         idField.isEnabled = isEnabled
+        phoneField.isEnabled = isEnabled
+        addressField.isEnabled = isEnabled
+        isCheckedBox.isEnabled = isEnabled
     }
 
     private fun updateButtonsVisibility(mode: FormMode) {

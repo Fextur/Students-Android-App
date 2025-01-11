@@ -11,5 +11,8 @@
     <string name="edit_button">Edit</string>
     <string name="cancel_button">Cancel</string>
     <string name="update_button">Update</string>
+    <string name="student_phone_hint">Enter phone number</string>
+    <string name="student_address_hint">Enter address</string>
+    <string name="student_checked_label">Checked</string>
 
 </resources>
