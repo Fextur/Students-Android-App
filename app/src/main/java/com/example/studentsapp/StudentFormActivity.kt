@@ -83,6 +83,9 @@ class StudentFormActivity : AppCompatActivity() {
             currentStudent?.let {
                 it.name = name
                 it.id = id
+                it.phone = phone
+                it.isChecked = isChecked
+                it.address = address
             }
         } else {
             StudentRepository.students.add(Student(id, name, isChecked, phone, address))
