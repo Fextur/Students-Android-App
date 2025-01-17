@@ -23,6 +23,7 @@ class StudentFormActivity : AppCompatActivity() {
     private lateinit var isCheckedBox: CheckBox
     private lateinit var cancelButton: MaterialButton
     private lateinit var updateButton: MaterialButton
+    private lateinit var deleteButton: MaterialButton
 
     private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
         updateButtonsVisibility(newValue)
@@ -44,6 +45,7 @@ class StudentFormActivity : AppCompatActivity() {
         saveButton = findViewById(R.id.saveButton)
         editButton = findViewById(R.id.editButton)
         cancelButton = findViewById(R.id.cancelButton)
+        deleteButton = findViewById(R.id.deleteButton)
         updateButton = findViewById(R.id.updateButton)
 
         mode = if (intent.hasExtra("STUDENT_ID")) FormMode.VIEW else FormMode.ADD
@@ -66,6 +68,13 @@ class StudentFormActivity : AppCompatActivity() {
             updateStudent()
             mode = FormMode.VIEW
         }
+
+        deleteButton.setOnClickListener {
+            currentStudent?.let {
+            StudentRepository.students.remove(it)
+            Toast.makeText(this, "${it.name} has been deleted.", Toast.LENGTH_SHORT).show()
+            finish()
+        }}
     }
 
     private fun updateStudent() {
@@ -118,6 +127,7 @@ class StudentFormActivity : AppCompatActivity() {
         editButton.visibility = if (mode == FormMode.VIEW) View.VISIBLE else View.GONE
         updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
         cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+        deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
     }
 
 }

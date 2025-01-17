@@ -111,7 +111,17 @@
         app:layout_constraintEnd_toStartOf="@id/updateButton"
         android:visibility="gone" />
 
-    <!-- Update Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="@string/delete_button"
+        app:layout_constraintTop_toBottomOf="@id/isCheckedBox"
+        app:layout_constraintStart_toEndOf="@id/cancelButton"
+        app:layout_constraintEnd_toStartOf="@id/updateButton"
+        android:visibility="gone" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/updateButton"
         android:layout_width="wrap_content"
@@ -119,7 +129,7 @@
         android:layout_marginTop="32dp"
         android:text="@string/update_button"
         app:layout_constraintTop_toBottomOf="@id/isCheckedBox"
-        app:layout_constraintStart_toEndOf="@id/cancelButton"
+        app:layout_constraintStart_toEndOf="@id/deleteButton"
         app:layout_constraintEnd_toEndOf="parent"
         android:visibility="gone" />
 
