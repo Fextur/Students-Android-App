@@ -99,15 +99,14 @@ class StudentFormFragment : Fragment() {
             .setTitle("Confirm $dialogActionString")
             .setMessage("Are you sure you want to $dialogActionString this student?")
             .setPositiveButton(dialogActionString) { _, _ ->
-                if (currentStudent != null) {
-                    currentStudent!!.apply {
+                currentStudent?.apply {
                         this.name = name
                         this.id = id
                         this.phone = phone
                         this.isChecked = isChecked
                         this.address = address
-                    }
-                } else {
+
+                } ?: {
                     StudentRepository.students.add(Student(id, name, isChecked, phone, address))
                 }
                 Toast.makeText(
