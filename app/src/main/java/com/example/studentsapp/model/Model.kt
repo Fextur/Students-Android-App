@@ -25,9 +25,27 @@ class Model private  constructor() {
         }
     }
 
-    fun addStudents(vararg students: Student, callback: () -> Unit = {}) {
+    fun updateStudents(vararg students: Student, callback: () -> Unit = {}) {
         executor.execute {
             db.studentDao().insertStudents(*students)
+            mainHandler.post {
+                callback()
+            }
+        }
+    }
+
+    fun getStudent(studentId: String, callback: (Student) -> Unit) {
+        executor.execute {
+            val student = db.studentDao().getStudentById(studentId)
+            mainHandler.post {
+                callback(student)
+            }
+        }
+    }
+
+    fun deleteStudent(student: Student, callback: () -> Unit = {}) {
+        executor.execute {
+            db.studentDao().delete(student)
             mainHandler.post {
                 callback()
             }

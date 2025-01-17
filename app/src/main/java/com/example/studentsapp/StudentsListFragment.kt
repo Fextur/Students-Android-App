@@ -52,6 +52,7 @@ class StudentsListFragment : Fragment() {
 
         }, onCheckChange = { student, isChecked ->
             student.isChecked = isChecked
+            Model.shared.updateStudents(student)
         })
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())

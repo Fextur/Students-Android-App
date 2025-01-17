@@ -18,7 +18,6 @@ import androidx.core.view.MenuProvider
 import androidx.navigation.fragment.findNavController
 import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
-import com.example.studentsapp.model.StudentRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import java.util.Calendar
@@ -43,6 +42,8 @@ class StudentFormFragment : Fragment() {
     private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
         updateButtonsVisibility(newValue)
         setFieldsEnabled(newValue != FormMode.VIEW)
+        idField.isEnabled = newValue == FormMode.ADD
+
         setActionBar(newValue)
     }
     private var currentStudent: Student? = null
@@ -70,8 +71,10 @@ class StudentFormFragment : Fragment() {
         mode = if (args.studentId != null) FormMode.VIEW else FormMode.ADD
 
         if (mode == FormMode.VIEW) {
-            currentStudent = StudentRepository.students.find { it.id == args.studentId }
-            populateFields(currentStudent)
+            Model.shared.getStudent(args.studentId!!) { student ->
+                currentStudent = student
+                populateFields(currentStudent)
+            }
         }
 
         saveButton.setOnClickListener { updateStudent() }
@@ -126,6 +129,12 @@ class StudentFormFragment : Fragment() {
         val birthDate = birthDateField.text.toString()
         val birthTime = birthTimeField.text.toString()
 
+        if (currentStudent !== null && currentStudent!!.id != id) {
+            Toast.makeText(requireContext(), "You can't change Id if a student", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+
         if (name.isEmpty() || id.isEmpty() || phone.isEmpty() || address.isEmpty() || birthDate.isEmpty() || birthTime.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill out all fields", Toast.LENGTH_SHORT)
                 .show()
@@ -146,7 +155,7 @@ class StudentFormFragment : Fragment() {
             .setTitle("Confirm $dialogActionString")
             .setMessage("Are you sure you want to $dialogActionString this student?")
             .setPositiveButton(dialogActionString) { _, _ ->
-                Model.shared.addStudents(
+                Model.shared.updateStudents(
                     Student(
                         id,
                         name,
@@ -156,88 +165,86 @@ class StudentFormFragment : Fragment() {
                         birthDate,
                         birthTime
                     )
-                ) { onSuccess()}}
-                    .setNegativeButton("Cancel", null) // Do nothing on cancel
-                    .create().show()
+                ) { onSuccess() }
             }
+            .setNegativeButton("Cancel", null) // Do nothing on cancel
+            .create().show()
+    }
 
-        private fun deleteStudent() {
-            AlertDialog.Builder(requireContext())
-                .setTitle("Confirm Delete")
-                .setMessage("Are you sure you want to delete this student?")
-                .setPositiveButton("Delete") { _, _ ->
-                    currentStudent?.let {
-                        StudentRepository.students.remove(it)
+    private fun deleteStudent() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Confirm Delete")
+            .setMessage("Are you sure you want to delete this student?")
+            .setPositiveButton("Delete") { _, _ ->
+                currentStudent?.let {
+                    Model.shared.deleteStudent(currentStudent!!) {
                         Toast.makeText(
                             requireContext(),
                             "${it.name} has been deleted.",
                             Toast.LENGTH_SHORT
                         ).show()
-
-                    }
-                    findNavController().navigateUp()
-
-                }
-                .setNegativeButton("Cancel", null)
-                .create().show()
-
-        }
-
-        private fun populateFields(student: Student?) {
-            if (student != null) {
-                nameField.setText(student.name)
-                idField.setText(student.id)
-                phoneField.setText(student.phone)
-                addressField.setText(student.address)
-                isCheckedBox.isChecked = student.isChecked
-                birthDateField.setText(student.birthDate)
-                birthTimeField.setText(student.birthTime)
-            }
-        }
-
-        private fun setFieldsEnabled(isEnabled: Boolean) {
-            nameField.isEnabled = isEnabled
-            idField.isEnabled = isEnabled
-            phoneField.isEnabled = isEnabled
-            addressField.isEnabled = isEnabled
-            isCheckedBox.isEnabled = isEnabled
-            birthDateField.isEnabled = isEnabled
-            birthTimeField.isEnabled = isEnabled
-        }
-
-        private fun updateButtonsVisibility(mode: FormMode) {
-            saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
-            updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-            cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-            deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-        }
-
-        private fun initActionBar() {
-            requireActivity().addMenuProvider(object : MenuProvider {
-                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                    menuInflater.inflate(R.menu.menu_student_form, menu)
-                    menu.findItem(R.id.action_edit).isVisible = mode == FormMode.VIEW
-                }
-
-                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    return when (menuItem.itemId) {
-                        R.id.action_edit -> {
-                            mode = FormMode.EDIT
-                            true
-                        }
-
-                        else -> false
+                        findNavController().navigateUp()
                     }
                 }
-            }, viewLifecycleOwner)
-        }
-
-        private fun setActionBar(mode: FormMode) {
-            (requireActivity() as AppCompatActivity).supportActionBar?.title = when (mode) {
-                FormMode.ADD -> "New Student"
-                FormMode.VIEW -> "Student's Details"
-                FormMode.EDIT -> "Edit Student"
             }
-            requireActivity().invalidateOptionsMenu()
+            .setNegativeButton("Cancel", null)
+            .create().show()
+    }
+
+    private fun populateFields(student: Student?) {
+        if (student != null) {
+            nameField.setText(student.name)
+            idField.setText(student.id)
+            phoneField.setText(student.phone)
+            addressField.setText(student.address)
+            isCheckedBox.isChecked = student.isChecked
+            birthDateField.setText(student.birthDate)
+            birthTimeField.setText(student.birthTime)
         }
     }
+
+    private fun setFieldsEnabled(isEnabled: Boolean) {
+        nameField.isEnabled = isEnabled
+        phoneField.isEnabled = isEnabled
+        addressField.isEnabled = isEnabled
+        isCheckedBox.isEnabled = isEnabled
+        birthDateField.isEnabled = isEnabled
+        birthTimeField.isEnabled = isEnabled
+    }
+
+    private fun updateButtonsVisibility(mode: FormMode) {
+        saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
+        updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+        cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+        deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+    }
+
+    private fun initActionBar() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_student_form, menu)
+                menu.findItem(R.id.action_edit).isVisible = mode == FormMode.VIEW
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_edit -> {
+                        mode = FormMode.EDIT
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner)
+    }
+
+    private fun setActionBar(mode: FormMode) {
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = when (mode) {
+            FormMode.ADD -> "New Student"
+            FormMode.VIEW -> "Student's Details"
+            FormMode.EDIT -> "Edit Student"
+        }
+        requireActivity().invalidateOptionsMenu()
+    }
+}
