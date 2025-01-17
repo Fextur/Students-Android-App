@@ -1,7 +1,11 @@
-package com.example.studentsapp.data
+package com.example.studentsapp.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
 data class Student(
-    var id: String,
+    @PrimaryKey var id: String,
     var name: String,
     var isChecked: Boolean = false,
     var phone: String,

@@ -3,7 +3,6 @@ package com.example.studentsapp
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,11 +15,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.example.studentsapp.data.Student
-import com.example.studentsapp.data.StudentRepository
+import com.example.studentsapp.model.Model
+import com.example.studentsapp.model.Student
+import com.example.studentsapp.model.StudentRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import java.util.Calendar
@@ -135,122 +133,111 @@ class StudentFormFragment : Fragment() {
         }
 
         val dialogActionString = if (currentStudent != null) "Update" else "Add"
+        val onSuccess = {
+            Toast.makeText(
+                requireContext(),
+                "Student $dialogActionString successful",
+                Toast.LENGTH_SHORT
+            ).show()
+            findNavController().navigateUp()
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Confirm $dialogActionString")
             .setMessage("Are you sure you want to $dialogActionString this student?")
             .setPositiveButton(dialogActionString) { _, _ ->
-                if (currentStudent != null) {
-                    currentStudent?.let {
-                        it.name = name
-                        it.id = id
-                        it.phone = phone
-                        it.isChecked = isChecked
-                        it.address = address
-                        it.birthDate = birthDate
-                        it.birthTime = birthTime
-
-                    }
-                } else {
-                    StudentRepository.students.add(
-                        Student(
-                            id,
-                            name,
-                            isChecked,
-                            phone,
-                            address,
-                            birthDate,
-                            birthTime
-                        )
+                Model.shared.addStudents(
+                    Student(
+                        id,
+                        name,
+                        isChecked,
+                        phone,
+                        address,
+                        birthDate,
+                        birthTime
                     )
-                }
-                Toast.makeText(
-                    requireContext(),
-                    "Student $dialogActionString successful",
-                    Toast.LENGTH_SHORT
-                ).show()
-                findNavController().navigateUp() // Go back to the list
-            }
-            .setNegativeButton("Cancel", null) // Do nothing on cancel
-            .create().show()
-    }
-
-    private fun deleteStudent() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Confirm Delete")
-            .setMessage("Are you sure you want to delete this student?")
-            .setPositiveButton("Delete") { _, _ ->
-                currentStudent?.let {
-                    StudentRepository.students.remove(it)
-                    Toast.makeText(
-                        requireContext(),
-                        "${it.name} has been deleted.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                }
-                findNavController().navigateUp()
-
-            }
-            .setNegativeButton("Cancel", null)
-            .create().show()
-
-    }
-
-    private fun populateFields(student: Student?) {
-        if (student != null) {
-            nameField.setText(student.name)
-            idField.setText(student.id)
-            phoneField.setText(student.phone)
-            addressField.setText(student.address)
-            isCheckedBox.isChecked = student.isChecked
-            birthDateField.setText(student.birthDate)
-            birthTimeField.setText(student.birthTime)
-        }
-    }
-
-    private fun setFieldsEnabled(isEnabled: Boolean) {
-        nameField.isEnabled = isEnabled
-        idField.isEnabled = isEnabled
-        phoneField.isEnabled = isEnabled
-        addressField.isEnabled = isEnabled
-        isCheckedBox.isEnabled = isEnabled
-        birthDateField.isEnabled = isEnabled
-        birthTimeField.isEnabled = isEnabled
-    }
-
-    private fun updateButtonsVisibility(mode: FormMode) {
-        saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
-        updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-        cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-        deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
-    }
-
-    private fun initActionBar() {
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_student_form, menu)
-                menu.findItem(R.id.action_edit).isVisible = mode == FormMode.VIEW
+                ) { onSuccess()}}
+                    .setNegativeButton("Cancel", null) // Do nothing on cancel
+                    .create().show()
             }
 
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_edit -> {
-                        mode = FormMode.EDIT
-                        true
+        private fun deleteStudent() {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Confirm Delete")
+                .setMessage("Are you sure you want to delete this student?")
+                .setPositiveButton("Delete") { _, _ ->
+                    currentStudent?.let {
+                        StudentRepository.students.remove(it)
+                        Toast.makeText(
+                            requireContext(),
+                            "${it.name} has been deleted.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
                     }
+                    findNavController().navigateUp()
 
-                    else -> false
                 }
-            }
-        }, viewLifecycleOwner)
-    }
+                .setNegativeButton("Cancel", null)
+                .create().show()
 
-    private fun setActionBar(mode: FormMode) {
-        (requireActivity() as AppCompatActivity).supportActionBar?.title = when (mode) {
-            FormMode.ADD -> "New Student"
-            FormMode.VIEW -> "Student's Details"
-            FormMode.EDIT -> "Edit Student"
         }
-        requireActivity().invalidateOptionsMenu()
+
+        private fun populateFields(student: Student?) {
+            if (student != null) {
+                nameField.setText(student.name)
+                idField.setText(student.id)
+                phoneField.setText(student.phone)
+                addressField.setText(student.address)
+                isCheckedBox.isChecked = student.isChecked
+                birthDateField.setText(student.birthDate)
+                birthTimeField.setText(student.birthTime)
+            }
+        }
+
+        private fun setFieldsEnabled(isEnabled: Boolean) {
+            nameField.isEnabled = isEnabled
+            idField.isEnabled = isEnabled
+            phoneField.isEnabled = isEnabled
+            addressField.isEnabled = isEnabled
+            isCheckedBox.isEnabled = isEnabled
+            birthDateField.isEnabled = isEnabled
+            birthTimeField.isEnabled = isEnabled
+        }
+
+        private fun updateButtonsVisibility(mode: FormMode) {
+            saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
+            updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+            cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+            deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+        }
+
+        private fun initActionBar() {
+            requireActivity().addMenuProvider(object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.menu_student_form, menu)
+                    menu.findItem(R.id.action_edit).isVisible = mode == FormMode.VIEW
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.action_edit -> {
+                            mode = FormMode.EDIT
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+            }, viewLifecycleOwner)
+        }
+
+        private fun setActionBar(mode: FormMode) {
+            (requireActivity() as AppCompatActivity).supportActionBar?.title = when (mode) {
+                FormMode.ADD -> "New Student"
+                FormMode.VIEW -> "Student's Details"
+                FormMode.EDIT -> "Edit Student"
+            }
+            requireActivity().invalidateOptionsMenu()
+        }
     }
-}

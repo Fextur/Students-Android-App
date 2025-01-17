@@ -10,13 +10,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.MenuProvider
-import androidx.navigation.Navigation
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.studentsapp.data.StudentRepository
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.example.studentsapp.model.Model
+import com.example.studentsapp.model.Student
 
 
 class StudentsListFragment : Fragment() {
@@ -35,14 +33,17 @@ class StudentsListFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recyclerView)
         emptyStateMessage = view.findViewById(R.id.emptyStateMessage)
 
-        setupRecyclerView()
-        updateEmptyState()
+        Model.shared.getAllStudents { students ->
+            setupRecyclerView(students)
+            updateEmptyState(students.isEmpty())
+        }
+
 
         return view
     }
 
-    private fun setupRecyclerView() {
-        adapter = StudentAdapter(StudentRepository.students, onRowClick = { student ->
+    private fun setupRecyclerView(students: List<Student>) {
+        adapter = StudentAdapter(students, onRowClick = { student ->
             val action =
                 StudentsListFragmentDirections.actionStudentsListFragmentToStudentFormFragment(
                     student.id
@@ -57,8 +58,8 @@ class StudentsListFragment : Fragment() {
         recyclerView.adapter = adapter
     }
 
-    private fun updateEmptyState() {
-        if (StudentRepository.students.isEmpty()) {
+    private fun updateEmptyState(isEmpty: Boolean) {
+        if (isEmpty) {
             recyclerView.visibility = View.GONE
             emptyStateMessage.visibility = View.VISIBLE
         } else {

@@ -7,7 +7,7 @@ import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.studentsapp.data.Student
+import com.example.studentsapp.model.Student
 
 class StudentAdapter(
     private val students: List<Student>,
