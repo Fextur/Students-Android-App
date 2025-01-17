@@ -5,7 +5,8 @@
     <fragment
         android:id="@+id/studentsListFragment"
         android:name="com.example.studentsapp.StudentsListFragment"
-        android:label="StudentsListFragment" >
+        android:label="Students List"
+        >
         <action
             android:id="@+id/action_studentsListFragment_to_studentFormFragment"
             app:destination="@id/studentFormFragment" />

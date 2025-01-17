@@ -9,6 +9,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studentsapp.data.StudentRepository
@@ -31,10 +33,10 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
+        NavigationUI.setupActionBarWithNavController(this, navController, AppBarConfiguration(navController.graph))
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // Handle the system back button correctly
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 

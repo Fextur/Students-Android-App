@@ -3,10 +3,16 @@ package com.example.studentsapp
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.studentsapp.data.Student
@@ -23,7 +29,6 @@ class StudentFormFragment : Fragment() {
     private lateinit var addressField: TextInputEditText
     private lateinit var isCheckedBox: CheckBox
     private lateinit var saveButton: MaterialButton
-    private lateinit var editButton: MaterialButton
     private lateinit var cancelButton: MaterialButton
     private lateinit var updateButton: MaterialButton
     private lateinit var deleteButton: MaterialButton
@@ -31,6 +36,7 @@ class StudentFormFragment : Fragment() {
     private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
         updateButtonsVisibility(newValue)
         setFieldsEnabled(newValue != FormMode.VIEW)
+        setActionBar(newValue)
     }
     private var currentStudent: Student? = null
 
@@ -46,7 +52,6 @@ class StudentFormFragment : Fragment() {
         addressField = view.findViewById(R.id.addressField)
         isCheckedBox = view.findViewById(R.id.isCheckedBox)
         saveButton = view.findViewById(R.id.saveButton)
-        editButton = view.findViewById(R.id.editButton)
         cancelButton = view.findViewById(R.id.cancelButton)
         deleteButton = view.findViewById(R.id.deleteButton)
         updateButton = view.findViewById(R.id.updateButton)
@@ -60,7 +65,6 @@ class StudentFormFragment : Fragment() {
         }
 
         saveButton.setOnClickListener { updateStudent() }
-        editButton.setOnClickListener { mode = FormMode.EDIT }
         cancelButton.setOnClickListener {
             populateFields(currentStudent)
             mode = FormMode.VIEW
@@ -71,6 +75,8 @@ class StudentFormFragment : Fragment() {
         }
         deleteButton.setOnClickListener { deleteStudent() }
 
+
+        if(mode != FormMode.ADD) initActionBar(view)
         return view
     }
 
@@ -130,9 +136,36 @@ class StudentFormFragment : Fragment() {
 
     private fun updateButtonsVisibility(mode: FormMode) {
         saveButton.visibility = if (mode == FormMode.ADD) View.VISIBLE else View.GONE
-        editButton.visibility = if (mode == FormMode.VIEW) View.VISIBLE else View.GONE
         updateButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
         cancelButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
         deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
+    }
+
+    private fun initActionBar(view: View) {
+        requireActivity().addMenuProvider(object: MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_student_form, menu)
+                menu.findItem(R.id.action_edit).isVisible = mode == FormMode.VIEW
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_edit -> {
+                        mode = FormMode.EDIT
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner)
+    }
+
+    private fun setActionBar(mode: FormMode) {
+        (requireActivity() as AppCompatActivity).supportActionBar?.title = when (mode) {
+            FormMode.ADD -> "New Student"
+            FormMode.VIEW -> "Student's Details"
+            FormMode.EDIT -> "Edit Student"
+        }
+        requireActivity().invalidateOptionsMenu()
     }
 }
