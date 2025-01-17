@@ -115,7 +115,7 @@ class StudentFormFragment : Fragment() {
             ).show()
         }
 
-        if (mode != FormMode.ADD) initActionBar(view)
+        if (mode != FormMode.ADD) initActionBar()
         return view
     }
 
@@ -225,7 +225,7 @@ class StudentFormFragment : Fragment() {
         deleteButton.visibility = if (mode == FormMode.EDIT) View.VISIBLE else View.GONE
     }
 
-    private fun initActionBar(view: View) {
+    private fun initActionBar() {
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_student_form, menu)
