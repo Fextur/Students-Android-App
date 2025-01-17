@@ -6,4 +6,6 @@ data class Student(
     var isChecked: Boolean = false,
     var phone: String,
     var address: String,
+    var birthDate: String,
+    var birthTime: String,
 )

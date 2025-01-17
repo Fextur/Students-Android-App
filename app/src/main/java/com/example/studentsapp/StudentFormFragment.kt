@@ -1,6 +1,9 @@
 package com.example.studentsapp
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.Menu
@@ -20,6 +23,7 @@ import com.example.studentsapp.data.Student
 import com.example.studentsapp.data.StudentRepository
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import java.util.Calendar
 import kotlin.properties.Delegates
 
 class StudentFormFragment : Fragment() {
@@ -29,6 +33,10 @@ class StudentFormFragment : Fragment() {
     private lateinit var phoneField: TextInputEditText
     private lateinit var addressField: TextInputEditText
     private lateinit var isCheckedBox: CheckBox
+
+    private lateinit var birthDateField: TextInputEditText
+    private lateinit var birthTimeField: TextInputEditText
+
     private lateinit var saveButton: MaterialButton
     private lateinit var cancelButton: MaterialButton
     private lateinit var updateButton: MaterialButton
@@ -52,6 +60,9 @@ class StudentFormFragment : Fragment() {
         phoneField = view.findViewById(R.id.phoneField)
         addressField = view.findViewById(R.id.addressField)
         isCheckedBox = view.findViewById(R.id.isCheckedBox)
+        birthDateField = view.findViewById(R.id.birthDateField)
+        birthTimeField = view.findViewById(R.id.birthTimeField)
+
         saveButton = view.findViewById(R.id.saveButton)
         cancelButton = view.findViewById(R.id.cancelButton)
         deleteButton = view.findViewById(R.id.deleteButton)
@@ -76,6 +87,33 @@ class StudentFormFragment : Fragment() {
         }
         deleteButton.setOnClickListener { deleteStudent() }
 
+        birthDateField.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    val formattedDate = "%02d/%02d/%04d".format(dayOfMonth, month + 1, year)
+                    birthDateField.setText(formattedDate)
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+
+        birthTimeField.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            TimePickerDialog(
+                requireContext(),
+                { _, hourOfDay, minute ->
+                    val formattedTime = "%02d:%02d".format(hourOfDay, minute)
+                    birthTimeField.setText(formattedTime)
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                true // Use 24-hour format
+            ).show()
+        }
 
         if (mode != FormMode.ADD) initActionBar(view)
         return view
@@ -87,8 +125,10 @@ class StudentFormFragment : Fragment() {
         val phone = phoneField.text.toString()
         val address = addressField.text.toString()
         val isChecked = isCheckedBox.isChecked
+        val birthDate = birthDateField.text.toString()
+        val birthTime = birthTimeField.text.toString()
 
-        if (name.isEmpty() || id.isEmpty() || phone.isEmpty() || address.isEmpty()) {
+        if (name.isEmpty() || id.isEmpty() || phone.isEmpty() || address.isEmpty() || birthDate.isEmpty() || birthTime.isEmpty()) {
             Toast.makeText(requireContext(), "Please fill out all fields", Toast.LENGTH_SHORT)
                 .show()
             return
@@ -99,15 +139,29 @@ class StudentFormFragment : Fragment() {
             .setTitle("Confirm $dialogActionString")
             .setMessage("Are you sure you want to $dialogActionString this student?")
             .setPositiveButton(dialogActionString) { _, _ ->
-                currentStudent?.apply {
-                        this.name = name
-                        this.id = id
-                        this.phone = phone
-                        this.isChecked = isChecked
-                        this.address = address
+                if (currentStudent != null) {
+                    currentStudent?.let {
+                        it.name = name
+                        it.id = id
+                        it.phone = phone
+                        it.isChecked = isChecked
+                        it.address = address
+                        it.birthDate = birthDate
+                        it.birthTime = birthTime
 
-                } ?: {
-                    StudentRepository.students.add(Student(id, name, isChecked, phone, address))
+                    }
+                } else {
+                    StudentRepository.students.add(
+                        Student(
+                            id,
+                            name,
+                            isChecked,
+                            phone,
+                            address,
+                            birthDate,
+                            birthTime
+                        )
+                    )
                 }
                 Toast.makeText(
                     requireContext(),
@@ -149,6 +203,8 @@ class StudentFormFragment : Fragment() {
             phoneField.setText(student.phone)
             addressField.setText(student.address)
             isCheckedBox.isChecked = student.isChecked
+            birthDateField.setText(student.birthDate)
+            birthTimeField.setText(student.birthTime)
         }
     }
 
@@ -158,6 +214,8 @@ class StudentFormFragment : Fragment() {
         phoneField.isEnabled = isEnabled
         addressField.isEnabled = isEnabled
         isCheckedBox.isEnabled = isEnabled
+        birthDateField.isEnabled = isEnabled
+        birthTimeField.isEnabled = isEnabled
     }
 
     private fun updateButtonsVisibility(mode: FormMode) {
