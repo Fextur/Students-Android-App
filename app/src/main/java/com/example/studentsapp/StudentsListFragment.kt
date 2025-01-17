@@ -43,7 +43,10 @@ class StudentsListFragment : Fragment() {
 
     private fun setupRecyclerView() {
         adapter = StudentAdapter(StudentRepository.students, onRowClick = { student ->
-            val action = StudentsListFragmentDirections.actionStudentsListFragmentToStudentFormFragment(student.id)
+            val action =
+                StudentsListFragmentDirections.actionStudentsListFragmentToStudentFormFragment(
+                    student.id
+                )
             view?.findNavController()?.navigate(action)
 
         }, onCheckChange = { student, isChecked ->
@@ -65,7 +68,7 @@ class StudentsListFragment : Fragment() {
     }
 
     private fun initActionBar(view: View) {
-        requireActivity().addMenuProvider(object: MenuProvider {
+        requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_students_list, menu)
             }
@@ -73,10 +76,14 @@ class StudentsListFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.action_add -> {
-                        val action = StudentsListFragmentDirections.actionStudentsListFragmentToStudentFormFragment(null)
+                        val action =
+                            StudentsListFragmentDirections.actionStudentsListFragmentToStudentFormFragment(
+                                null
+                            )
                         view.findNavController().navigate(action)
                         true
                     }
+
                     else -> false
                 }
             }
