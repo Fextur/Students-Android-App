@@ -8,11 +8,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.view.MenuProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.studentsapp.databinding.FragmentStudentsListBinding
 import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
 
@@ -22,6 +24,8 @@ class StudentsListFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyStateMessage: TextView
     private lateinit var adapter: StudentAdapter
+    private lateinit var progressBar: ProgressBar
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,10 +36,13 @@ class StudentsListFragment : Fragment() {
 
         recyclerView = view.findViewById(R.id.recyclerView)
         emptyStateMessage = view.findViewById(R.id.emptyStateMessage)
+        progressBar = view.findViewById(R.id.progressBar)
 
+        progressBar.visibility = View.VISIBLE
         Model.shared.getAllStudents { students ->
             setupRecyclerView(students)
             updateEmptyState(students.isEmpty())
+            progressBar.visibility = View.GONE
         }
 
 

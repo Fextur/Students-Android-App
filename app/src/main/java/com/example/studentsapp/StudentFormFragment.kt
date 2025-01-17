@@ -11,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +25,8 @@ import java.util.Calendar
 import kotlin.properties.Delegates
 
 class StudentFormFragment : Fragment() {
+
+    private lateinit var progressBar: ProgressBar
 
     private lateinit var nameField: TextInputEditText
     private lateinit var idField: TextInputEditText
@@ -54,6 +57,8 @@ class StudentFormFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_student_form, container, false)
 
+        progressBar = view.findViewById(R.id.progressBar)
+
         nameField = view.findViewById(R.id.nameField)
         idField = view.findViewById(R.id.idField)
         phoneField = view.findViewById(R.id.phoneField)
@@ -71,9 +76,11 @@ class StudentFormFragment : Fragment() {
         mode = if (args.studentId != null) FormMode.VIEW else FormMode.ADD
 
         if (mode == FormMode.VIEW) {
+            progressBar.visibility = View.VISIBLE
             Model.shared.getStudent(args.studentId!!) { student ->
                 currentStudent = student
                 populateFields(currentStudent)
+                progressBar.visibility = View.GONE
             }
         }
 
@@ -142,19 +149,11 @@ class StudentFormFragment : Fragment() {
         }
 
         val dialogActionString = if (currentStudent != null) "Update" else "Add"
-        val onSuccess = {
-            Toast.makeText(
-                requireContext(),
-                "Student $dialogActionString successful",
-                Toast.LENGTH_SHORT
-            ).show()
-            findNavController().navigateUp()
-        }
-
         AlertDialog.Builder(requireContext())
             .setTitle("Confirm $dialogActionString")
             .setMessage("Are you sure you want to $dialogActionString this student?")
             .setPositiveButton(dialogActionString) { _, _ ->
+                progressBar.visibility = View.VISIBLE
                 Model.shared.updateStudents(
                     Student(
                         id,
@@ -165,7 +164,15 @@ class StudentFormFragment : Fragment() {
                         birthDate,
                         birthTime
                     )
-                ) { onSuccess() }
+                ) {
+                    Toast.makeText(
+                        requireContext(),
+                        "Student $dialogActionString successful",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    progressBar.visibility = View.GONE
+                    findNavController().navigateUp()
+                }
             }
             .setNegativeButton("Cancel", null) // Do nothing on cancel
             .create().show()
@@ -177,12 +184,14 @@ class StudentFormFragment : Fragment() {
             .setMessage("Are you sure you want to delete this student?")
             .setPositiveButton("Delete") { _, _ ->
                 currentStudent?.let {
+                    progressBar.visibility = View.VISIBLE
                     Model.shared.deleteStudent(currentStudent!!) {
                         Toast.makeText(
                             requireContext(),
                             "${it.name} has been deleted.",
                             Toast.LENGTH_SHORT
                         ).show()
+                        progressBar.visibility = View.GONE
                         findNavController().navigateUp()
                     }
                 }
