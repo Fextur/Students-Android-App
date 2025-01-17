@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studentsapp.data.StudentRepository
@@ -14,9 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: StudentAdapter
-    private lateinit var emptyStateMessage: View
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,45 +28,14 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        recyclerView = findViewById(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        emptyStateMessage = findViewById(R.id.emptyStateMessage)
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
 
-        setupRecyclerView()
-        updateEmptyState()
-
-        recyclerView.adapter = adapter
-
-        findViewById<FloatingActionButton>(R.id.addStudentFab).setOnClickListener {
-            startActivity(Intent(this, StudentFormActivity::class.java))
-        }
     }
 
-    private fun setupRecyclerView() {
-        adapter = StudentAdapter(StudentRepository.students, onRowClick = { student ->
-            val intent = Intent(this, StudentFormActivity::class.java)
-            intent.putExtra("STUDENT_ID", student.id)
-            startActivity(intent)
-        }, onCheckChange = { student, isChecked ->
-            student.isChecked = isChecked
-        })
-        recyclerView.adapter = adapter
-    }
-
-    private fun updateEmptyState() {
-        if (StudentRepository.students.isEmpty()) {
-            recyclerView.visibility = View.GONE
-            emptyStateMessage.visibility = View.VISIBLE
-        } else {
-            recyclerView.visibility = View.VISIBLE
-            emptyStateMessage.visibility = View.GONE
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        setupRecyclerView()
-        updateEmptyState()
+    override fun onSupportNavigateUp(): Boolean {
+        // Handle the system back button correctly
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
 }

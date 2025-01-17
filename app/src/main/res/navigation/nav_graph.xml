@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/nav_graph">
-
+    app:startDestination="@id/studentsListFragment">
+    <fragment
+        android:id="@+id/studentsListFragment"
+        android:name="com.example.studentsapp.StudentsListFragment"
+        android:label="StudentsListFragment" >
+        <action
+            android:id="@+id/action_studentsListFragment_to_studentFormFragment"
+            app:destination="@id/studentFormFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/studentFormFragment"
+        android:name="com.example.studentsapp.StudentFormFragment"
+        android:label="StudentFormFragment" >
+        <argument
+            android:name="studentId"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 </navigation>
