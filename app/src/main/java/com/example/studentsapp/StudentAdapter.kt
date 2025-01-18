@@ -18,7 +18,7 @@ class StudentAdapter(
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.findViewById(R.id.student_name)
         val id: TextView = view.findViewById(R.id.student_id)
-        val picture: ImageView = view.findViewById(R.id.student_picture)
+        val picture: ImageView = view.findViewById(R.id.studentPhoto)
         val checkBox: CheckBox = view.findViewById(R.id.student_checkbox)
     }
 

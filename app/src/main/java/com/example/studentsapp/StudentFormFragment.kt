@@ -2,6 +2,7 @@ package com.example.studentsapp
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,9 +11,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
@@ -21,6 +26,8 @@ import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 import java.util.Calendar
 import kotlin.properties.Delegates
 
@@ -41,6 +48,10 @@ class StudentFormFragment : Fragment() {
     private lateinit var cancelButton: MaterialButton
     private lateinit var updateButton: MaterialButton
     private lateinit var deleteButton: MaterialButton
+
+    private lateinit var cameraLauncher: ActivityResultLauncher<Void?>
+    private var studentPhotoBitmap: Bitmap? = null
+    private val storage = FirebaseStorage.getInstance()
 
     private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
         updateButtonsVisibility(newValue)
@@ -71,6 +82,16 @@ class StudentFormFragment : Fragment() {
         cancelButton = view.findViewById(R.id.cancelButton)
         deleteButton = view.findViewById(R.id.deleteButton)
         updateButton = view.findViewById(R.id.updateButton)
+
+        cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
+            bitmap?.let {
+                studentPhotoBitmap = it
+                view?.findViewById<ImageView>(R.id.studentPhoto)?.setImageBitmap(bitmap)
+            } ?: Toast.makeText(requireContext(), "Failed to capture photo", Toast.LENGTH_SHORT).show()
+        }
+        view.findViewById<MaterialButton>(R.id.takePhotoButton).setOnClickListener {
+            cameraLauncher.launch(null)
+        }
 
         val args = StudentFormFragmentArgs.fromBundle(requireArguments())
         mode = if (args.studentId != null) FormMode.VIEW else FormMode.ADD
@@ -126,7 +147,6 @@ class StudentFormFragment : Fragment() {
         if (mode != FormMode.ADD) initActionBar()
         return view
     }
-
     private fun updateStudent() {
         val name = nameField.text.toString()
         val id = idField.text.toString()
@@ -136,8 +156,8 @@ class StudentFormFragment : Fragment() {
         val birthDate = birthDateField.text.toString()
         val birthTime = birthTimeField.text.toString()
 
-        if (currentStudent !== null && currentStudent!!.id != id) {
-            Toast.makeText(requireContext(), "You can't change Id if a student", Toast.LENGTH_SHORT)
+        if (currentStudent != null && currentStudent!!.id != id) {
+            Toast.makeText(requireContext(), "You can't change the ID of a student", Toast.LENGTH_SHORT)
                 .show()
             return
         }
@@ -148,35 +168,58 @@ class StudentFormFragment : Fragment() {
             return
         }
 
-        val dialogActionString = if (currentStudent != null) "Update" else "Add"
-        AlertDialog.Builder(requireContext())
-            .setTitle("Confirm $dialogActionString")
-            .setMessage("Are you sure you want to $dialogActionString this student?")
-            .setPositiveButton(dialogActionString) { _, _ ->
-                progressBar.visibility = View.VISIBLE
-                Model.shared.updateStudents(
-                    Student(
-                        id,
-                        name,
-                        isChecked,
-                        phone,
-                        address,
-                        birthDate,
-                        birthTime
-                    )
-                ) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Student $dialogActionString successful",
-                        Toast.LENGTH_SHORT
-                    ).show()
+        progressBar.visibility = View.VISIBLE
+
+        // Handle photo upload
+        if (studentPhotoBitmap != null) {
+            uploadPhotoToFirebase(id) { photoUrl ->
+                if (photoUrl != null) {
+                    saveStudent(name, id, phone, address, isChecked, birthDate, birthTime, photoUrl)
+                } else {
                     progressBar.visibility = View.GONE
-                    findNavController().navigateUp()
+                    Toast.makeText(requireContext(), "Failed to upload photo", Toast.LENGTH_SHORT).show()
                 }
             }
-            .setNegativeButton("Cancel", null) // Do nothing on cancel
-            .create().show()
+        } else {
+            saveStudent(name, id, phone, address, isChecked, birthDate, birthTime, currentStudent?.photoUrl ?: "")
+        }
     }
+
+    private fun uploadPhotoToFirebase(studentId: String, callback: (String?) -> Unit) {
+        val storageRef = storage.reference.child("students/$studentId.jpg")
+        val baos = ByteArrayOutputStream()
+        studentPhotoBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
+
+        storageRef.putBytes(data)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    callback(uri.toString())
+                }
+            }
+            .addOnFailureListener {
+                callback(null)
+            }
+    }
+
+    private fun saveStudent(
+        name: String,
+        id: String,
+        phone: String,
+        address: String,
+        isChecked: Boolean,
+        birthDate: String,
+        birthTime: String,
+        photoUrl: String
+    ) {
+        val student = Student(id, name, isChecked, phone, address, birthDate, birthTime, photoUrl)
+        Model.shared.updateStudents(student) {
+            Toast.makeText(requireContext(), "Student saved successfully!", Toast.LENGTH_SHORT).show()
+            progressBar.visibility = View.GONE
+            findNavController().navigateUp()
+        }
+    }
+
 
     private fun deleteStudent() {
         AlertDialog.Builder(requireContext())
@@ -256,4 +299,6 @@ class StudentFormFragment : Fragment() {
         }
         requireActivity().invalidateOptionsMenu()
     }
+
+
 }

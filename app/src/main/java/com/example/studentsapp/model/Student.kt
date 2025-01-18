@@ -12,17 +12,19 @@ data class Student(
     var address: String,
     var birthDate: String,
     var birthTime: String,
+    var photoUrl: String = ""
 ) {
     val json: Map<String, Any>
         get() = hashMapOf(
-                "id" to id,
-                "name" to name,
-                "isChecked" to isChecked,
-                "phone" to phone,
-                "address" to address,
-                "birthDate" to birthDate,
-                "birthTime" to birthTime
-            )
+            "id" to id,
+            "name" to name,
+            "isChecked" to isChecked,
+            "phone" to phone,
+            "address" to address,
+            "birthDate" to birthDate,
+            "birthTime" to birthTime,
+            "photoUrl" to photoUrl
+        )
 
     companion object {
         fun fromJSON(json: Map<String, Any>): Student {
@@ -33,8 +35,9 @@ data class Student(
             val address = json["address"]as? String ?: ""
             val birthDate = json["birthDate"] as? String?: ""
             val birthTime = json["birthTime"] as? String?: ""
+            val photoUrl = json["photoUrl"] as? String?: ""
 
-            return Student(id, name, isChecked, phone, address, birthDate, birthTime)
+            return Student(id, name, isChecked, phone, address, birthDate, birthTime, photoUrl)
         }
     }
 
