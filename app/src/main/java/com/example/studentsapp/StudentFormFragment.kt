@@ -26,6 +26,7 @@ import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.squareup.picasso.Picasso
 import java.util.Calendar
 import kotlin.properties.Delegates
 
@@ -231,6 +232,16 @@ class StudentFormFragment : Fragment() {
             isCheckedBox.isChecked = student.isChecked
             birthDateField.setText(student.birthDate)
             birthTimeField.setText(student.birthTime)
+            val studentPhoto = view?.findViewById<ImageView>(R.id.studentPhoto)
+            if (student.photoUrl.isNotEmpty()) {
+                Picasso.get()
+                    .load(student.photoUrl)
+                    .placeholder(R.drawable.student_avatar)
+                    .error(R.drawable.student_avatar)
+                    .into(studentPhoto)
+            } else {
+                studentPhoto?.setImageResource(R.drawable.student_avatar)
+            }
         }
     }
 

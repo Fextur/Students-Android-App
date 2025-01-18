@@ -69,4 +69,6 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.storage)
     implementation(libs.cloudinary.android.v302)
+    implementation(libs.picasso)
+
 }

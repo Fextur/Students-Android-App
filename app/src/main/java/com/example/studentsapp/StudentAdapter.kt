@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.studentsapp.model.Student
+import com.squareup.picasso.Picasso
 
 class StudentAdapter(
     private val students: List<Student>,
@@ -32,12 +33,21 @@ class StudentAdapter(
         val student = students[position]
         holder.name.text = student.name
         holder.id.text = student.id
-        holder.picture.setImageResource(R.drawable.student_avatar)
         holder.checkBox.isChecked = student.isChecked
 
         holder.itemView.setOnClickListener { onRowClick(student) }
         holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
             onCheckChange(student, isChecked)
+        }
+
+        if (student.photoUrl.isNotEmpty()) {
+            Picasso.get()
+                .load(student.photoUrl)
+                .placeholder(R.drawable.student_avatar)
+                .error(R.drawable.student_avatar)
+                .into(holder.picture)
+        } else {
+            holder.picture.setImageResource(R.drawable.student_avatar)
         }
     }
 

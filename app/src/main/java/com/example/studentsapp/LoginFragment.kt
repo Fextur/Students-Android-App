@@ -29,7 +29,6 @@ class LoginFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_login, container, false)
 
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
         emailField = view.findViewById(R.id.emailField)
@@ -38,44 +37,23 @@ class LoginFragment : Fragment() {
         registerButton = view.findViewById(R.id.registerButton)
         progressBar = view.findViewById(R.id.progressBar)
 
-        // Redirect if already logged in
         if (auth.currentUser != null) {
             navigateToMain()
         }
 
-        // Login Button
         loginButton.setOnClickListener {
             val email = emailField.text.toString()
             val password = passwordField.text.toString()
-
-            if (isValidInput(email, password)) {
-                loginUser(email, password)
-            }
+            loginUser(email, password)
         }
 
-        // Register Button
         registerButton.setOnClickListener {
             val email = emailField.text.toString()
             val password = passwordField.text.toString()
-
-            if (isValidInput(email, password)) {
-                registerUser(email, password)
-            }
+            registerUser(email, password)
         }
 
         return view
-    }
-
-    private fun isValidInput(email: String, password: String): Boolean {
-        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(context, "Please enter a valid email", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (password.isEmpty() || password.length < 6) {
-            Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
-            return false
-        }
-        return true
     }
 
     private fun loginUser(email: String, password: String) {
