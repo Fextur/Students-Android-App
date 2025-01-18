@@ -1,6 +1,8 @@
 package com.example.studentsapp.model
 
+import android.graphics.Bitmap
 import android.os.Looper
+import android.util.Log
 import androidx.core.os.HandlerCompat
 import com.example.studentsapp.model.dao.AppLocalDB
 import com.example.studentsapp.model.dao.AppLocalDBRepository
@@ -12,6 +14,7 @@ class Model private constructor() {
     private val executor = Executors.newSingleThreadExecutor()
     private val mainHandler = HandlerCompat.createAsync(Looper.getMainLooper())
     private val firebaseModel = FirebaseModel()
+    private val cloudinaryModel = CloudinaryModel()
 
     companion object {
         val shared = Model()
@@ -80,5 +83,10 @@ class Model private constructor() {
                 }
             }
         }
+    }
+
+    fun uploadImage(bitmap: Bitmap, name: String, callback: (String) -> Unit) {
+        Log.d("KAKA","uploadImage MOdel")
+        cloudinaryModel.uploadImage(bitmap, name, callback)
     }
 }

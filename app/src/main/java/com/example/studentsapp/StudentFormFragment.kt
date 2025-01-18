@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.Menu
@@ -11,7 +12,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.CheckBox
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -26,8 +26,6 @@ import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import com.google.firebase.storage.FirebaseStorage
-import java.io.ByteArrayOutputStream
 import java.util.Calendar
 import kotlin.properties.Delegates
 
@@ -51,7 +49,6 @@ class StudentFormFragment : Fragment() {
 
     private lateinit var cameraLauncher: ActivityResultLauncher<Void?>
     private var studentPhotoBitmap: Bitmap? = null
-    private val storage = FirebaseStorage.getInstance()
 
     private var mode: FormMode by Delegates.observable(FormMode.VIEW) { _, _, newValue ->
         updateButtonsVisibility(newValue)
@@ -86,7 +83,7 @@ class StudentFormFragment : Fragment() {
         cameraLauncher = registerForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap ->
             bitmap?.let {
                 studentPhotoBitmap = it
-                view?.findViewById<ImageView>(R.id.studentPhoto)?.setImageBitmap(bitmap)
+                view.findViewById<ImageView>(R.id.studentPhoto)?.setImageBitmap(bitmap)
             } ?: Toast.makeText(requireContext(), "Failed to capture photo", Toast.LENGTH_SHORT).show()
         }
         view.findViewById<MaterialButton>(R.id.takePhotoButton).setOnClickListener {
@@ -147,6 +144,7 @@ class StudentFormFragment : Fragment() {
         if (mode != FormMode.ADD) initActionBar()
         return view
     }
+
     private fun updateStudent() {
         val name = nameField.text.toString()
         val id = idField.text.toString()
@@ -170,10 +168,9 @@ class StudentFormFragment : Fragment() {
 
         progressBar.visibility = View.VISIBLE
 
-        // Handle photo upload
         if (studentPhotoBitmap != null) {
-            uploadPhotoToFirebase(id) { photoUrl ->
-                if (photoUrl != null) {
+            Model.shared.uploadImage(studentPhotoBitmap!!, id) { photoUrl ->
+                if (photoUrl.isNotEmpty()) {
                     saveStudent(name, id, phone, address, isChecked, birthDate, birthTime, photoUrl)
                 } else {
                     progressBar.visibility = View.GONE
@@ -183,23 +180,6 @@ class StudentFormFragment : Fragment() {
         } else {
             saveStudent(name, id, phone, address, isChecked, birthDate, birthTime, currentStudent?.photoUrl ?: "")
         }
-    }
-
-    private fun uploadPhotoToFirebase(studentId: String, callback: (String?) -> Unit) {
-        val storageRef = storage.reference.child("students/$studentId.jpg")
-        val baos = ByteArrayOutputStream()
-        studentPhotoBitmap?.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        val data = baos.toByteArray()
-
-        storageRef.putBytes(data)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    callback(uri.toString())
-                }
-            }
-            .addOnFailureListener {
-                callback(null)
-            }
     }
 
     private fun saveStudent(
@@ -219,7 +199,6 @@ class StudentFormFragment : Fragment() {
             findNavController().navigateUp()
         }
     }
-
 
     private fun deleteStudent() {
         AlertDialog.Builder(requireContext())
@@ -299,6 +278,4 @@ class StudentFormFragment : Fragment() {
         }
         requireActivity().invalidateOptionsMenu()
     }
-
-
 }
