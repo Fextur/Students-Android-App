@@ -16,14 +16,16 @@ class FirebaseModel {
         db.firestoreSettings = settings
     }
 
-    fun getAllStudents(callback: (List<Student>) -> Unit) {
+    fun getAllStudents(successCallback: (List<Student>) -> Unit, failureCallback: () -> Unit = {}) {
         db.collection(Constants.Collections.STUDENTS).get().addOnSuccessListener {
             val students: MutableList<Student> = mutableListOf()
             for (json in it) {
                 students.add(Student.fromJSON(json.data))
             }
 
-            callback(students)
+            successCallback(students)
+        }.addOnFailureListener {
+            failureCallback()
         }
     }
 
@@ -34,18 +36,20 @@ class FirebaseModel {
             batch.set(docRef, student.json)
         }
 
-        batch.commit().addOnSuccessListener {
+        batch.commit().addOnCompleteListener() {
             callback()
         }
     }
 
-    fun getStudent(studentId: String, callback: (Student) -> Unit) {
+    fun getStudent(studentId: String, successCallback: (Student) -> Unit, failureCallback: () -> Unit = {}) {
         val docRef = db.collection(Constants.Collections.STUDENTS).document(studentId)
         docRef.get().addOnSuccessListener { document ->
             if (document != null && document.exists()) {
                 val student = Student.fromJSON(document.data!!)
-                callback(student)
+                successCallback(student)
             }
+        }.addOnFailureListener {
+            failureCallback()
         }
     }
 
