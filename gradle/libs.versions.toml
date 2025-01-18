@@ -1,6 +1,7 @@
 [versions]
 agp = "8.8.0"
 cloudinaryAndroid = "1.32.0"
+cloudinaryAndroidVersion = "3.0.2"
 firebaseBom = "33.8.0"
 kotlin = "1.9.24"
 coreKtx = "1.15.0"
@@ -25,6 +26,7 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
+cloudinary-android-v302 = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroidVersion" }
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-firestore = { module = "com.google.firebase:firebase-firestore" }
