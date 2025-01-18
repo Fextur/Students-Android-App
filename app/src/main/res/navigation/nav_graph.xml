@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:startDestination="@id/studentsListFragment">
+    app:startDestination="@id/loginFragment">
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.studentsapp.LoginFragment"
+        android:label="Login">
+        <action
+            android:id="@+id/action_loginFragment_to_studentsListFragment"
+            app:destination="@id/studentsListFragment" />
+    </fragment>
     <fragment
         android:id="@+id/studentsListFragment"
         android:name="com.example.studentsapp.StudentsListFragment"
-        android:label="Students List"
-        >
+        android:label="Students List">
         <action
             android:id="@+id/action_studentsListFragment_to_studentFormFragment"
             app:destination="@id/studentFormFragment" />
@@ -14,7 +21,7 @@
     <fragment
         android:id="@+id/studentFormFragment"
         android:name="com.example.studentsapp.StudentFormFragment"
-        android:label="StudentFormFragment" >
+        android:label="StudentFormFragment">
         <argument
             android:name="studentId"
             app:argType="string"

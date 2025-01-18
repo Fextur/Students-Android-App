@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.studentsapp.databinding.FragmentStudentsListBinding
 import com.example.studentsapp.model.Model
 import com.example.studentsapp.model.Student
+import com.google.firebase.auth.FirebaseAuth
 
 
 class StudentsListFragment : Fragment() {
@@ -90,6 +91,12 @@ class StudentsListFragment : Fragment() {
                                 null
                             )
                         view.findNavController().navigate(action)
+                        true
+                    }
+                    android.R.id.home -> {
+                        // Perform logout when the back button is pressed
+                        FirebaseAuth.getInstance().signOut()
+                        view.findNavController().navigate(R.id.loginFragment)
                         true
                     }
 
