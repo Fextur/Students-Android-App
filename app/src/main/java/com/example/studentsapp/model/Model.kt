@@ -6,7 +6,7 @@ import com.example.studentsapp.model.dao.AppLocalDB
 import com.example.studentsapp.model.dao.AppLocalDBRepository
 import java.util.concurrent.Executors
 
-class Model private  constructor() {
+class Model private constructor() {
 
     private val db: AppLocalDBRepository = AppLocalDB.db
     private val executor = Executors.newSingleThreadExecutor()
@@ -19,28 +19,35 @@ class Model private  constructor() {
 
     fun getAllStudents(callback: (List<Student>) -> Unit) {
         executor.execute {
-            firebaseModel.getAllStudents({ students ->
-                db.studentDao().insertStudents(*students.toTypedArray())
-
-                mainHandler.post {
-                    callback(students)
+            firebaseModel.getAllStudents(
+                successCallback = { students ->
+                    executor.execute {
+                        db.studentDao().insertStudents(*students.toTypedArray())
+                        mainHandler.post {
+                            callback(students)
+                        }
+                    }
+                },
+                failureCallback = {
+                    executor.execute {
+                        val students = db.studentDao().getAll()
+                        mainHandler.post {
+                            callback(students)
+                        }
+                    }
                 }
-            }, {
-                val students = db.studentDao().getAll()
-                mainHandler.post {
-                    callback(students)
-                }
-            })
-
+            )
         }
     }
 
     fun updateStudents(vararg students: Student, callback: () -> Unit = {}) {
         executor.execute {
             firebaseModel.updateStudents(*students) {
-                db.studentDao().insertStudents(*students)
-                mainHandler.post {
-                    callback()
+                executor.execute {
+                    db.studentDao().insertStudents(*students)
+                    mainHandler.post {
+                        callback()
+                    }
                 }
             }
         }
@@ -49,14 +56,14 @@ class Model private  constructor() {
     fun getStudent(studentId: String, callback: (Student) -> Unit) {
         executor.execute {
             firebaseModel.getStudent(studentId, { firebaseStudent ->
-                db.studentDao().insertStudents(firebaseStudent)
-                mainHandler.post {
-                    callback(firebaseStudent)
+                executor.execute { // Ensures Room operation is on a background thread
+                    db.studentDao().insertStudents(firebaseStudent) // Cache Firebase data
+                    mainHandler.post { callback(firebaseStudent) } // Notify UI
                 }
             }, {
-                val localStudent = db.studentDao().getStudentById(studentId)
-                mainHandler.post {
-                    callback(localStudent)
+                executor.execute { // Ensures fallback Room operation is on a background thread
+                    val localStudent = db.studentDao().getStudentById(studentId)
+                    mainHandler.post { callback(localStudent) } // Notify UI
                 }
             })
         }
@@ -64,10 +71,12 @@ class Model private  constructor() {
 
     fun deleteStudent(student: Student, callback: () -> Unit = {}) {
         executor.execute {
-            firebaseModel.deleteStudent(student)  {
-                db.studentDao().delete(student)
-                mainHandler.post {
-                    callback()
+            firebaseModel.deleteStudent(student) {
+                executor.execute {
+                    db.studentDao().delete(student)
+                    mainHandler.post {
+                        callback()
+                    }
                 }
             }
         }
